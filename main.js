@@ -3,12 +3,36 @@ import GUI from 'lil-gui'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import gsap from 'gsap'
 
+const loadingManager = new THREE.LoadingManager()
+loadingManager.onStart = () => {
+  console.log('loading started')
+}
+loadingManager.onLoad = () => {
+  console.log('loading finished')
+}
+loadingManager.onProgress = () => {
+  console.log('loading progress')
+}
+loadingManager.onError = () => {
+  console.log('loading error')
+}
+
+const textureLoader = new THREE.TextureLoader(loadingManager)
+const texture = textureLoader.load('./static/image.jpeg')
+texture.colorSpace = THREE.SRGBColorSpace
+texture.repeat.x = 2
+texture.repeat.y = 3
+texture.wrapS = THREE.MirroredRepeatWrapping
+texture.wrapT = THREE.MirroredRepeatWrapping
+texture.offset.x = 0.5
+texture.offset.y = 0.5
+
 const gui = new GUI({ width: 300, title: 'Nice debug UI', closeFolders: true })
 const debug = { color: 0xff0000, subdivision: 2 }
 const canvas = document.querySelector('.webgl')
 const scene = new THREE.Scene()
 const geometry = new THREE.BoxGeometry()
-const material = new THREE.MeshBasicMaterial({ color: debug.color, wireframe: true })
+const material = new THREE.MeshBasicMaterial({ map: texture })
 const mesh = new THREE.Mesh(geometry, material)
 
 scene.add(mesh)
