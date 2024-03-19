@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 import GUI from 'lil-gui'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import gsap from 'gsap'
 
 const loadingManager = new THREE.LoadingManager()
 loadingManager.onStart = () => {
@@ -31,29 +30,23 @@ const gui = new GUI({ width: 300, title: 'Nice debug UI', closeFolders: true })
 const debug = { color: 0xff0000, subdivision: 2 }
 const canvas = document.querySelector('.webgl')
 const scene = new THREE.Scene()
-const geometry = new THREE.BoxGeometry()
-const material = new THREE.MeshBasicMaterial({ map: texture })
-const mesh = new THREE.Mesh(geometry, material)
+const material = new THREE.MeshNormalMaterial()
+material.side = THREE.DoubleSide
+material.flatShading = true
+const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 16), material)
+sphere.position.x = -1.5
+const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material)
+const torus = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.2, 16, 32), material)
+torus.position.x = 1.5
 
-scene.add(mesh)
-
-
-debug.spin = () => {
-  gsap.to(mesh.rotation, { duration: 1, y: mesh.rotation.y + Math.PI * 2 })
-}
+scene.add(sphere, plane, torus)
 
 const cubeTweaks = gui.addFolder('Cube')
-cubeTweaks.add(mesh.position, 'y').step(0.01).name('elevation')
-cubeTweaks.add(mesh, 'visible')
 cubeTweaks.add(material, 'wireframe')
 cubeTweaks.addColor(debug, 'color').onChange(() => {
   material.color.set(debug.color)
 })
 cubeTweaks.add(debug, 'spin')
-cubeTweaks.add(debug, 'subdivision').min(1).max(20).step(1).onFinishChange(() => {
-  mesh.geometry.dispose()
-  mesh.geometry = new THREE.BoxGeometry(1, 1, 1, debug.subdivision, debug.subdivision, debug.subdivision)
-})
 
 const axesHelper = new THREE.AxesHelper(2)
 scene.add(axesHelper)
@@ -115,8 +108,18 @@ window.addEventListener('keydown', (event) => {
   }
 })
 
+const clock = new THREE.Clock()
+
 function tick() {
-  camera.lookAt(mesh.position)
+  const elapsedTime = clock.getElapsedTime()
+  sphere.rotation.y = 0.1 * elapsedTime
+  plane.rotation.y = 0.1 * elapsedTime
+  torus.rotation.y = 0.1 * elapsedTime
+
+  sphere.rotation.x = - 0.15 * elapsedTime
+  plane.rotation.x = - 0.15 * elapsedTime
+  torus.rotation.x = - 0.15 * elapsedTime
+
   renderer.render(scene, camera)
   controls.update()
   window.requestAnimationFrame(tick)
